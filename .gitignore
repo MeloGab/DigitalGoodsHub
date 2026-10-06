@@ -1,0 +1,14 @@
+**/bin/
+**/obj/
+*.db
+*.db-shm
+*.db-wal
+.vs/
+.env
+TestResults/
+artifacts/
+# Material de preparaÃ§Ã£o separado do repositÃ³rio
+/docs/ENTREVISTA.md
+/docs/VALIDACAO.md
+/material-entrevista/
+/DigitalGoodsHub_Entrevista_Validacao.docx

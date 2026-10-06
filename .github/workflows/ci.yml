@@ -1,0 +1,17 @@
+name: build-and-test
+on: [push, pull_request]
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with: { dotnet-version: '10.0.x' }
+      - run: dotnet test DigitalGoodsHub.slnx -c Release
+      - run: docker compose config --quiet
+      - run: docker compose up --build -d
+      - run: python3 scripts/smoke.py --wait 180
+      - if: always()
+        run: docker compose logs --tail 100
+      - if: always()
+        run: docker compose down

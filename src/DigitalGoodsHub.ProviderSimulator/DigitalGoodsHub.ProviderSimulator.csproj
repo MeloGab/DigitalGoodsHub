@@ -1,0 +1,1 @@
+<Project Sdk="Microsoft.NET.Sdk.Web"><ItemGroup><ProjectReference Include="../DigitalGoodsHub.Core/DigitalGoodsHub.Core.csproj"/></ItemGroup></Project>

@@ -1,0 +1,58 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: demo
+      POSTGRES_PASSWORD: demo-local-only
+      POSTGRES_DB: digitalgoods
+    volumes: ["postgres-data:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U demo -d digitalgoods"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    environment:
+      RABBITMQ_DEFAULT_USER: demo
+      RABBITMQ_DEFAULT_PASS: demo-local-only
+    ports: ["127.0.0.1:15672:15672"]
+    volumes: ["rabbit-data:/var/lib/rabbitmq"]
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+  provider:
+    build:
+      context: .
+      args: { PROJECT: DigitalGoodsHub.ProviderSimulator }
+    command: ["DigitalGoodsHub.ProviderSimulator.dll"]
+    environment:
+      ConnectionStrings__Sqlite: "Data Source=/data/provider.db;Default Timeout=30"
+    volumes: ["provider-data:/data"]
+    ports: ["127.0.0.1:5081:8080"]
+  api:
+    build: .
+    environment:
+      ConnectionStrings__Postgres: "Host=postgres;Database=digitalgoods;Username=demo;Password=demo-local-only"
+      Redis: "redis:6379"
+      RabbitMQ: "amqp://demo:demo-local-only@rabbitmq:5672/"
+      ProviderUrl: "http://provider:8080/"
+    ports: ["127.0.0.1:5080:8080"]
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+      rabbitmq: { condition: service_healthy }
+      provider: { condition: service_started }
+volumes:
+  postgres-data:
+  provider-data:
+  rabbit-data:
